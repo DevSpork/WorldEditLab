@@ -67,7 +67,9 @@
     "express-session": "^1.17.1",
     "passport": "^0.4.1",
     "passport-custom": "^1.1.1",
+    "passport-saml": "^2.0.5",
     "sequelize": "^6.5.0",
-    "sqlite3": "5.0.0"
+    "sqlite3": "5.0.0",
+    "xml2js": "^0.4.23"
   }
 }

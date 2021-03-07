@@ -1,14 +1,7 @@
 import { DataTypes, Model, Sequelize } from 'sequelize';
 import { Role } from './role';
 import { hashPassword } from '../auth/password';
-
-interface UserAttributes {
-  id?: number;
-  name: string;
-  password: string;
-  role: Role;
-  forcePasswordUpdate: boolean;
-}
+import { UserAttributes } from '../interfaces/userAttributes';
 
 export class User extends Model implements UserAttributes {
   public id!: number;

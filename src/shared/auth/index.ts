@@ -1,7 +1,7 @@
 import { Application } from 'express';
 import expressSession from 'express-session';
 import passport from 'passport';
-import { localStrategy } from './strategies';
+import { localStrategy, samlStrategy } from './strategies';
 
 export const initAuth = (app: Application) => {
   app.use(expressSession({
@@ -14,4 +14,7 @@ export const initAuth = (app: Application) => {
 
   const strategy = localStrategy();
   strategy.init();
+
+  const samlstrategy = samlStrategy();
+  samlstrategy.init();
 };

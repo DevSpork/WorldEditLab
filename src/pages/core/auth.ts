@@ -1,9 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
 import passport from 'passport';
+// @ts-ignore
+import { parseString } from 'xml2js';
 import { buildDefaultResponse } from '../../shared/response';
 import { LOCAL_SQLITE_STRATEGY } from '../../shared/auth/strategies';
 import { User } from '../../shared/models';
 import { hashPassword } from '../../shared/auth/password';
+import { parseXML } from '../../shared/helpers/extractSamlProperties';
 
 export const handleLogoutRequest = (req: Request, res: Response) => {
   req.logout();
@@ -28,6 +31,41 @@ export const handleLoginRequest = (req: Request, res: Response, next: NextFuncti
         res.redirect('/');
       });
     }
+  })(req, res, next);
+};
+
+export const handleSamlLoginRequest = (req: Request, res: Response) => {
+  passport.authenticate('saml', {
+    successRedirect: '/',
+    failureRedirect: '/login',
+  });
+};
+
+export const handleSamlCallbackRequest = (req: Request, res: Response, next: NextFunction) => {
+  const responseData = buildDefaultResponse(req);
+  passport.authenticate('saml', { failureRedirect: '/', failureFlash: true }, (err: Error, user: any) => {
+    parseString(user.getSamlResponseXml(), (xmlerr:any, result:any) => {
+      const samlUser = parseXML(result);
+
+      if (err) {
+        responseData.data = {
+          errorMessage: err.message,
+        };
+        res.render('login', responseData);
+        return;
+      }
+      if (xmlerr) {
+        responseData.data = {
+          errorMessage: xmlerr.message,
+        };
+        res.render('login', responseData);
+        return;
+      }
+
+      req.login(samlUser, () => {
+        res.redirect('/');
+      });
+    });
   })(req, res, next);
 };
 
