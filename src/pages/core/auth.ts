@@ -1,12 +1,10 @@
 import { NextFunction, Request, Response } from 'express';
 import passport from 'passport';
-// @ts-ignore
-import { parseString } from 'xml2js';
 import { buildDefaultResponse } from '../../shared/response';
 import { LOCAL_SQLITE_STRATEGY } from '../../shared/auth/strategies';
-import { User } from '../../shared/models';
+import { Role, User } from '../../shared/models';
 import { hashPassword } from '../../shared/auth/password';
-import { parseXML } from '../../shared/helpers/extractSamlProperties';
+import { SamlUser } from '../../shared/models/samlUser';
 
 export const handleLogoutRequest = (req: Request, res: Response) => {
   req.logout();
@@ -43,28 +41,32 @@ export const handleSamlLoginRequest = (req: Request, res: Response) => {
 
 export const handleSamlCallbackRequest = (req: Request, res: Response, next: NextFunction) => {
   const responseData = buildDefaultResponse(req);
-  passport.authenticate('saml', { failureRedirect: '/', failureFlash: true }, (err: Error, user: any) => {
-    parseString(user.getSamlResponseXml(), (xmlerr:any, result:any) => {
-      const samlUser = parseXML(result);
+  passport.authenticate('saml', {failureRedirect: '/', failureFlash: true}, (err: Error, user: any) => {
 
-      if (err) {
-        responseData.data = {
-          errorMessage: err.message,
-        };
-        res.render('login', responseData);
-        return;
-      }
-      if (xmlerr) {
-        responseData.data = {
-          errorMessage: xmlerr.message,
-        };
-        res.render('login', responseData);
-        return;
-      }
+    if (err) {
+      responseData.data = {
+        errorMessage: err.message,
+      };
+      res.render('login', responseData);
+      return;
+    }
 
-      req.login(samlUser, () => {
-        res.redirect('/');
-      });
+    const ADMIN_ROLE_NAME = '/admin';
+    const ROLE_PROPERTY = 'roles';
+    const USERNAME_PROPERTY = 'Username';
+    let userrole = Role.USER;
+    const username = user[USERNAME_PROPERTY];
+
+    if (Array.isArray(user[ROLE_PROPERTY])) {
+      user.roles.forEach(((role: string) => {
+        if (role === ADMIN_ROLE_NAME) userrole = Role.ADMIN;
+      }));
+    } else if (user.roles === ADMIN_ROLE_NAME) userrole = Role.ADMIN;
+
+    const samlUser = new SamlUser(username, userrole);
+
+    req.login(samlUser, () => {
+      res.redirect('/');
     });
   })(req, res, next);
 };
