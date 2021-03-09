@@ -9,6 +9,7 @@ export type ResponseData = {
 export type ResponseHeaderData = {
   username?: string;
   role?: number;
+  strategy: string;
 };
 
 export type ResponseNavigationData = {

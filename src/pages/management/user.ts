@@ -4,6 +4,7 @@ import { HTTPErrorResponse, HTTPStatus } from '../../shared/helpers/errorHandler
 import { buildDefaultResponse } from '../../shared/response';
 import { hashPassword } from '../../shared/auth/password';
 import { generateRandomString } from '../../shared/helpers/generate';
+import {USED_STRATEGY} from "../../shared/auth/strategies";
 
 export const handleUserIndexView = async (req: Request, res: Response) => {
   const user = req.user as User;
@@ -17,6 +18,7 @@ export const handleUserIndexView = async (req: Request, res: Response) => {
 
   responseData.data = {
     rows: JSON.stringify(responseUsers),
+    strategy: USED_STRATEGY,
   };
 
   return res.render('management-user', responseData);

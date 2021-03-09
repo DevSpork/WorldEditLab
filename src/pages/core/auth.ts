@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import passport from 'passport';
 import { Op } from 'sequelize';
 import { buildDefaultResponse } from '../../shared/response';
-import { LOCAL_SQLITE_STRATEGY } from '../../shared/auth/strategies';
+import {LOCAL_SQLITE_STRATEGY, USED_STRATEGY} from '../../shared/auth/strategies';
 import { Role, User } from '../../shared/models';
 import { hashPassword } from '../../shared/auth/password';
 import { SamlUser } from '../../shared/models/samlUser';
@@ -93,6 +93,8 @@ export const handleSamlCallbackRequest = (req: Request, res: Response, next: Nex
 
 export const handleLoginView = (req: Request, res: Response) => {
   const responseData = buildDefaultResponse(req);
+  // @ts-ignore
+  responseData.data.strategy = USED_STRATEGY;
   res.render('login', responseData);
 };
 

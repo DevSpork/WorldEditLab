@@ -19,6 +19,7 @@ import {
   handleHeightmapCategoryDeleteRequest,
   handleHeightmapCategoryIndexView, handleHeightmapCategoryPatchRequest,
 } from './heightmapCategory';
+import { USED_STRATEGY } from '../../shared/auth/strategies';
 
 export const handleIndexView = async (req: Request, res: Response) => {
   const user = req.user as User;
@@ -32,12 +33,14 @@ export default () => {
   const router = Router();
   router.get('/', handleIndexView);
 
-  router.get('/users', asyncHandler(handleUserIndexView));
-  router.post('/users', asyncHandler(handleUserCreateRequest));
-  router.delete('/users/:id', asyncHandler(handleUserDeleteRequest));
-  router.put('/users/:id', asyncHandler(handleUserPatchRequest));
-  router.get('/users/:id/pw-reset', asyncHandler(handleUserPasswordResetRequest));
+  if (USED_STRATEGY === 'local') {
+    router.post('/users', asyncHandler(handleUserCreateRequest));
+    router.delete('/users/:id', asyncHandler(handleUserDeleteRequest));
+    router.put('/users/:id', asyncHandler(handleUserPatchRequest));
+    router.get('/users/:id/pw-reset', asyncHandler(handleUserPasswordResetRequest));
+  }
 
+  router.get('/users', asyncHandler(handleUserIndexView));
   router.get('/schematic-categories', asyncHandler(handleSchematicCategoryIndexView));
   router.post('/schematic-categories', asyncHandler(handleSchematicCategoryCreateRequest));
   router.delete('/schematic-categories/:id', asyncHandler(handleSchematicCategoryDeleteRequest));

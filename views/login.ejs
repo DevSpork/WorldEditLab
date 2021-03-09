@@ -11,6 +11,7 @@
     <div>
         <h1 class="login-title"> Login </h1>
         <h3 class="text-red-500"><%= data.errorMessage %></h3>
+        <% if(data.strategy === "local"){ %>
         <form method="post">
             <div class="login-input-field">
                 <div>
@@ -26,8 +27,10 @@
             </div>
             <button type="submit"> Login </button>
         </form>
+        <% } else if("saml") { %>
+            <button type="submit" class="rounded-lg inline-flex items-center bg-green-600 text-white hover:bg-green-700 py-2 px-2 md:px-4" onclick="window.location.href='/login/sso';"> Login with SAML </button>
+        <%}%>
     </div>
-    <div><a href="/login/sso">SAML Login</a></div>
 </div>
 <%- include('partials/foot'); %>
 </body>

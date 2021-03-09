@@ -14,10 +14,12 @@
     <div class="mb-4 flex justify-between items-center">
         <div class="users-quick-actions"></div>
         <div>
+            <% if (data.strategy === "local") {%>
             <button class="rounded-lg inline-flex items-center bg-green-600 text-white hover:bg-green-700 py-2 px-2 md:px-4"
                     onclick="WEL.users.create()">
                 <span>Create New User</span>
             </button>
+                <% } %>
         </div>
     </div>
     <div id="users-collection" class="collection-table"></div>
@@ -41,6 +43,7 @@
                 }
               },
             },
+              <% if (data.strategy == "local") {%>
             {title: 'Password', func: function (item) {
                 return item.password ? item.password : '********';
               }},
@@ -57,6 +60,7 @@
                 '</span>';
               },
             },
+              <% } %>
           ],
           clickHandler: function (event) {
             if (event.target === undefined) {
@@ -76,6 +80,7 @@
               });
             }
           },
+            <% if (data.strategy == "local") {%>
           massActions: {
             selector: '.users-quick-actions',
             actions: [
@@ -92,6 +97,7 @@
               },
             ],
           },
+            <% } %>
         });
         collectionUsers.setData(JSON.parse('<%- data.rows %>'));
       })();
