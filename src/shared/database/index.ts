@@ -4,6 +4,7 @@ import {
 } from '../models';
 import { Heightmap, initHeightmap } from '../models/heightmap';
 import { HeightmapCategory, initHeightmapCategory } from '../models/heightmapCategory';
+import { initSamlUser } from '../models/samlUser';
 
 const sequelize = new Sequelize({
   dialect: 'sqlite',
@@ -14,6 +15,7 @@ const sequelize = new Sequelize({
 sequelize.authenticate().then(() => {
   console.log('Database connection has been established successfully.');
   initUser(sequelize);
+  initSamlUser(sequelize);
   initSchematic(sequelize);
   initSchematicCategory(sequelize);
   initHeightmap(sequelize);

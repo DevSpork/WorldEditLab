@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import passport from 'passport';
+import { Op } from 'sequelize';
 import { buildDefaultResponse } from '../../shared/response';
 import { LOCAL_SQLITE_STRATEGY } from '../../shared/auth/strategies';
 import { Role, User } from '../../shared/models';
@@ -41,32 +42,51 @@ export const handleSamlLoginRequest = (req: Request, res: Response) => {
 
 export const handleSamlCallbackRequest = (req: Request, res: Response, next: NextFunction) => {
   const responseData = buildDefaultResponse(req);
-  passport.authenticate('saml', {failureRedirect: '/', failureFlash: true}, (err: Error, user: any) => {
-
-    if (err) {
-      responseData.data = {
-        errorMessage: err.message,
-      };
-      res.render('login', responseData);
-      return;
-    }
-
+  passport.authenticate('saml', { failureRedirect: '/', failureFlash: true }, (err: Error, user: any) => {
     const ADMIN_ROLE_NAME = '/admin';
     const ROLE_PROPERTY = 'roles';
     const USERNAME_PROPERTY = 'Username';
-    let userrole = Role.USER;
+
     const username = user[USERNAME_PROPERTY];
 
+    let userrole = Role.USER;
     if (Array.isArray(user[ROLE_PROPERTY])) {
       user.roles.forEach(((role: string) => {
         if (role === ADMIN_ROLE_NAME) userrole = Role.ADMIN;
       }));
     } else if (user.roles === ADMIN_ROLE_NAME) userrole = Role.ADMIN;
 
-    const samlUser = new SamlUser(username, userrole);
+    SamlUser.findOrCreate({
+      where: { name: username },
+      defaults: {
+        name: username,
+        role: 1,
+      },
+    }).then((result) => {
+      const samlUser = result[0];
+      const created = result[1];
 
-    req.login(samlUser, () => {
-      res.redirect('/');
+      // Update the user role if necessary
+      if (!created) {
+        samlUser.role = userrole;
+        SamlUser.update({
+          role: userrole,
+        }, {
+          where: {
+            id: samlUser.id,
+          },
+        });
+      }
+
+      req.login(samlUser, () => {
+        res.redirect('/');
+      });
+    }).catch((sqlErr) => {
+      console.log(sqlErr);
+      responseData.data = {
+        errorMessage: 'Database error',
+      };
+      res.render('login', responseData);
     });
   })(req, res, next);
 };
