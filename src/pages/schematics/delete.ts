@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { Role, Schematic, User } from '../../shared/models';
 import { HTTPErrorResponse, HTTPStatus } from '../../shared/helpers/errorHandler';
+import { USED_STRATEGY } from '../../shared/auth/strategies';
 
 export const handleDeleteRequest = async (req: Request, res: Response) => {
   const user = req.user as User;
@@ -16,12 +17,24 @@ export const handleDeleteRequest = async (req: Request, res: Response) => {
       },
     });
   } else if (user.role === Role.USER) {
-    count = await Schematic.destroy({
-      where: {
-        uuid: req.params.uuid,
-        uploadedById: user.id,
-      },
-    });
+    let userOption;
+    if (USED_STRATEGY === 'local') {
+      userOption = {
+        where: {
+          uuid: req.params.uuid,
+          uploadedById: user.id,
+        },
+      };
+    } else {
+      userOption = {
+        where: {
+          uuid: req.params.uuid,
+          uploadedBySamlId: user.id,
+        },
+      };
+    }
+
+    count = await Schematic.destroy(userOption);
   }
 
   if (count === 1) {

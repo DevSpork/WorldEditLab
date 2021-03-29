@@ -5,6 +5,7 @@ import { Buffer } from 'buffer';
 import { Access } from './access';
 import { User } from './user';
 import { SchematicCategory } from './schematicCategory';
+import {SamlUser} from "./samlUser";
 
 export enum SchematicFormat {
   SCHEM,
@@ -37,12 +38,16 @@ export class Schematic extends Model implements SchematicAttributes {
   public createdAt!: Date;
 
   // References
-  public uploadedById!: number;
+  public uploadedById?: number;
+
+  public uploadedBySamlId?: number;
 
   public categoryId!: number;
 
   // Linked Models
-  public uploadedBy!: User;
+  public uploadedBy?: User;
+
+  public uploadedBySaml?: SamlUser;
 
   public category!: SchematicCategory;
 }

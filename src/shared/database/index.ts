@@ -4,7 +4,7 @@ import {
 } from '../models';
 import { Heightmap, initHeightmap } from '../models/heightmap';
 import { HeightmapCategory, initHeightmapCategory } from '../models/heightmapCategory';
-import { initSamlUser } from '../models/samlUser';
+import {initSamlUser, SamlUser} from '../models/samlUser';
 
 const sequelize = new Sequelize({
   dialect: 'sqlite',
@@ -22,6 +22,7 @@ sequelize.authenticate().then(() => {
   initHeightmapCategory(sequelize);
 
   Schematic.belongsTo(User, { as: 'uploadedBy' });
+  Schematic.belongsTo(SamlUser, { as: 'uploadedBySaml' });
   Schematic.belongsTo(SchematicCategory, { as: 'category' });
   Heightmap.belongsTo(User, { as: 'uploadedBy' });
   Heightmap.belongsTo(HeightmapCategory, { as: 'category' });

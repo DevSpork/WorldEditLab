@@ -6,6 +6,8 @@ import {
   Access, Schematic, SchematicCategory, User,
 } from '../../shared/models';
 import { createResponseFromRow } from './shared';
+import { USED_STRATEGY } from '../../shared/auth/strategies';
+import { SamlUser } from '../../shared/models/samlUser';
 
 export const handleIndexView = async (req: Request, res: Response) => {
   const responseData = buildDefaultResponse(req);
@@ -24,15 +26,27 @@ export const handleIndexView = async (req: Request, res: Response) => {
           [Op.lte]: Access.INTERNAL,
         },
         uploadedById: user.id,
+        uploadedBySamlId: user.id,
       },
     };
-    searchOptions.include = [
-      {
-        model: User,
-        attributes: ['name'],
-        as: 'uploadedBy',
-      },
-    ];
+
+    if (USED_STRATEGY === 'local') {
+      searchOptions.include = [
+        {
+          model: User,
+          attributes: ['name'],
+          as: 'uploadedBy',
+        },
+      ];
+    } else if (USED_STRATEGY === 'saml') {
+      searchOptions.include = [
+        {
+          model: SamlUser,
+          attributes: ['name'],
+          as: 'uploadedBySaml',
+        },
+      ];
+    }
   } else {
     searchOptions.where = {
       access: Access.PUBLIC,

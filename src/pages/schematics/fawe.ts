@@ -3,6 +3,7 @@ import { UploadedFile } from 'express-fileupload';
 import { Access, Schematic, SchematicFormat } from '../../shared/models';
 import { HTTPErrorResponse, HTTPStatus } from '../../shared/helpers/errorHandler';
 import { returnSchematic } from '../download/schematic';
+import {USED_STRATEGY} from "../../shared/auth/strategies";
 
 export const handleFAWEUpload = async (req: Request, res: Response) => {
   const faweAllowedAddresses = (process.env.FAWE_UPLOAD_ACCESS as string).split(',');
@@ -33,14 +34,24 @@ export const handleFAWEUpload = async (req: Request, res: Response) => {
   if (name.length !== 32) {
     throw new HTTPErrorResponse(HTTPStatus.BAD_REQUEST, 'Invalid schematic name');
   }
-
-  const schematic = Schematic.build({
-    name,
-    rawData: file.data,
-    access: Access.INTERNAL,
-    uploadedById: parseInt(process.env.FAWE_USER_ID as string, 10),
-    format: SchematicFormat.SCHEM,
-  });
+  let schematic: Schematic;
+  if (USED_STRATEGY === 'local') {
+    schematic = Schematic.build({
+      name,
+      rawData: file.data,
+      access: Access.INTERNAL,
+      uploadedById: parseInt(process.env.FAWE_USER_ID as string, 10),
+      format: SchematicFormat.SCHEM,
+    });
+  } else {
+    schematic = Schematic.build({
+      name,
+      rawData: file.data,
+      access: Access.INTERNAL,
+      uploadedBySamlId: parseInt(process.env.FAWE_USER_ID as string, 10),
+      format: SchematicFormat.SCHEM,
+    });
+  }
 
   return schematic.save().then(() => {
     res.send('Success!');

@@ -5,6 +5,7 @@ import {
 } from '../../shared/models';
 import { createResponseFromRow } from './shared';
 import { HTTPErrorResponse, HTTPStatus } from '../../shared/helpers/errorHandler';
+import { USED_STRATEGY } from '../../shared/auth/strategies';
 
 export const handleIndexUpload = async (req: Request, res: Response) => {
   const user = req.user as User;
@@ -32,17 +33,33 @@ export const handleIndexUpload = async (req: Request, res: Response) => {
   if (type !== 'schematic' && type !== 'schem') {
     throw new HTTPErrorResponse(HTTPStatus.BAD_REQUEST, 'Invalid schematic type');
   }
+  let schematic: Schematic;
 
-  const schematic = Schematic.build({
-    name,
-    rawData: file.data,
-    access: req.body.access !== undefined ? parseInt(req.body.access, 10) : Access.INTERNAL,
-    categoryId: (req.body.category !== undefined && req.body.category !== '-1')
-      ? parseInt(req.body.category, 10)
-      : null,
-    uploadedById: user.id,
-    format: type === 'schem' ? SchematicFormat.SCHEM : SchematicFormat.SCHEMATIC,
-  });
+  if (USED_STRATEGY === 'local') {
+    schematic = Schematic.build({
+      name,
+      rawData: file.data,
+      access: req.body.access !== undefined ? parseInt(req.body.access, 10) : Access.INTERNAL,
+      categoryId: (req.body.category !== undefined && req.body.category !== '-1')
+        ? parseInt(req.body.category, 10)
+        : null,
+      uploadedById: user.id,
+      format: type === 'schem' ? SchematicFormat.SCHEM : SchematicFormat.SCHEMATIC,
+    });
+  } else {
+    // this is saml
+    console.log('Used SAML');
+    schematic = Schematic.build({
+      name,
+      rawData: file.data,
+      access: req.body.access !== undefined ? parseInt(req.body.access, 10) : Access.INTERNAL,
+      categoryId: (req.body.category !== undefined && req.body.category !== '-1')
+        ? parseInt(req.body.category, 10)
+        : null,
+      uploadedBySamlId: user.id,
+      format: type === 'schem' ? SchematicFormat.SCHEM : SchematicFormat.SCHEMATIC,
+    });
+  }
 
   return schematic.save().then(() => {
     res.send({

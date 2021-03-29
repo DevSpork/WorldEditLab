@@ -6,7 +6,9 @@ export const createResponseFromRow = (schematic: Schematic, user: User) => {
   let uploadedBy: string | undefined;
   if (schematic.uploadedBy) {
     uploadedBy = schematic.uploadedBy.name;
-  } else if (user !== undefined && user.id === schematic.uploadedById) {
+  } else if (schematic.uploadedBySaml) {
+    uploadedBy = schematic.uploadedBySaml.name;
+  } else if (user !== undefined && (user.id === schematic.uploadedById || user.id === schematic.uploadedBySamlId)) {
     uploadedBy = user.name;
   }
   return {

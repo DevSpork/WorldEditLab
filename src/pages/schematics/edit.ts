@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { Role, Schematic, User } from '../../shared/models';
 import { HTTPErrorResponse, HTTPStatus } from '../../shared/helpers/errorHandler';
+import { USED_STRATEGY } from '../../shared/auth/strategies';
 
 export const handleEditRequest = async (req: Request, res: Response) => {
   const user = req.user as User;
@@ -28,16 +29,29 @@ export const handleEditRequest = async (req: Request, res: Response) => {
       },
     });
   } else if (user.role === Role.USER) {
+    let userOption;
+    if (USED_STRATEGY === 'local') {
+      userOption = {
+        where: {
+          uuid: req.params.uuid,
+          uploadedById: user.id,
+        },
+      };
+    } else {
+      // SAML Strategy
+      userOption = {
+        where: {
+          uuid: req.params.uuid,
+          uploadedBySamlId: user.id,
+        },
+      };
+    }
+
     [count] = await Schematic.update({
       name: req.body.name,
       access: req.body.access,
       categoryId: req.body.category === -1 ? null : req.body.category,
-    }, {
-      where: {
-        uuid: req.params.uuid,
-        uploadedById: user.id,
-      },
-    });
+    }, userOption);
   }
 
   if (count === 1) {
